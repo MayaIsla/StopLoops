@@ -6,7 +6,7 @@ $Body = @{
     role = "Admin"
 }
 
-$authCode = Invoke-RestMethod -Method 'POST' -Uri "https://becn-stg.saasit.com/api/rest/authentication/login" -Body $body
+$authCode = Invoke-RestMethod -Method 'POST' -Uri "https://saasit.com/api/rest/authentication/login" -Body $body
 
 
 $headers = @{
@@ -17,13 +17,13 @@ $headers = @{
 $SubjectLine = Read-Host "Enter Incident Subject Line"
 
 
-$searchQuery = Invoke-RestMethod -Method 'GET' -Uri "https://becn-stg.saasit.com/api/odata/businessobject/incidents?`$filter=Subject eq '$SubjectLine'&?filter=Status eq 'Logged'" -Headers $headers 
+$searchQuery = Invoke-RestMethod -Method 'GET' -Uri "https://saasit.com/api/odata/businessobject/incidents?`$filter=Subject eq '$SubjectLine'&?filter=Status eq 'Logged'" -Headers $headers 
 
 forEach ($object in $searchQuery.value)
 {
     $recIdofIncident = $object.recID
     Write-Output "Deleting Inc#" $object.IncidentNumber
-    Invoke-RestMethod -Method 'DELETE' -Uri "https://becn-stg.saasit.com/api/odata/businessobject/incidents('$recIdofIncident')" -Headers $headers
+    Invoke-RestMethod -Method 'DELETE' -Uri "https://saasit.com/api/odata/businessobject/incidents('$recIdofIncident')" -Headers $headers
 }
 
 
