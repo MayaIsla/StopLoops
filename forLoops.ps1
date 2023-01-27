@@ -1,12 +1,12 @@
 
 $Body = @{
-    tenant = "tenant"
-    username = "username"
-    password = "pw"
-    role = "Admin"
+    tenant = "tenant.saasit.com"
+    username = "UN"
+    password = "PW"
+    role = "role"
 }
 
-$authCode = Invoke-RestMethod -Method 'POST' -Uri "https://saasit.com/api/rest/authentication/login" -Body $body
+$authCode = Invoke-RestMethod -Method 'POST' -Uri "https://tenant.saasit.com/api/rest/authentication/login" -Body $body
 
 
 $headers = @{
@@ -17,16 +17,31 @@ $headers = @{
 $SubjectLine = Read-Host "Enter Incident Subject Line"
 
 
-$searchQuery = Invoke-RestMethod -Method 'GET' -Uri "https://saasit.com/api/odata/businessobject/incidents?`$filter=Subject eq '$SubjectLine'&?filter=Status eq 'Logged'" -Headers $headers 
+$searchQuery = Invoke-RestMethod -Method 'GET' -Uri "https://tenant.saasit.com/api/odata/businessobject/incidents?`$filter=Subject eq '$SubjectLine'&?filter=Status eq 'Logged'" -Headers $headers 
 
-forEach ($object in $searchQuery.value)
-{
-    $recIdofIncident = $object.recID
-    Write-Output "Deleting Inc#" $object.IncidentNumber
-    Invoke-RestMethod -Method 'DELETE' -Uri "https://saasit.com/api/odata/businessobject/incidents('$recIdofIncident')" -Headers $headers
+#Attempt to multithread, but need PowerShell 7 to run this. *Cries*
+#Also please note the Ivanti API will only let you run this at about 25 incidents, so you will need to rerun the script if there are a lot of incidents.
+
+<#Workflow TestingMultiThread{
+    ForEach -parallel($object in $searchQuery.value) {
+        $recIdofIncident = $object.recID
+        Write-Output "Deleting Inc#" $object.IncidentNumber
+        Invoke-RestMethod -Method 'DELETE' -Uri "https://tenant.saasit.com/api/odata/businessobject/incidents('$recIdofIncident')" -Headers $headers
+    }
+} TestingMultiThread#>
+
+<#ForEach ($object in $SearchQuery.value){
+$recIdofIncident = $object.recId
+$recIdofIncident
 }
 
 
+$recIdofIncident | ForEach-Object -Parallel {
+    $object.IncidentNumber
+}#>
 
-
-
+ForEach ($object in $searchQuery.value) {
+    $recIdofIncident = $object.recID
+    Write-Output "Deleting Inc#" $object.IncidentNumber
+    Invoke-RestMethod -Method 'DELETE' -Uri "https://tenant.saasit.com/api/odata/businessobject/incidents('$recIdofIncident')" -Headers $headers
+}
