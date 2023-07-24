@@ -3,7 +3,7 @@ $Body = @{
     tenant = "tenant.saasit.com"
     username = "UN"
     password = "PW"
-    role = "role"
+    role = "Admin"
 }
 
 $authCode = Invoke-RestMethod -Method 'POST' -Uri "https://tenant.saasit.com/api/rest/authentication/login" -Body $body
@@ -16,32 +16,31 @@ $headers = @{
 
 $SubjectLine = Read-Host "Enter Incident Subject Line"
 
-
-$searchQuery = Invoke-RestMethod -Method 'GET' -Uri "https://tenant.saasit.com/api/odata/businessobject/incidents?`$filter=Subject eq '$SubjectLine'&?filter=Status eq 'Logged'" -Headers $headers 
-
-#Attempt to multithread, but need PowerShell 7 to run this. *Cries*
-#Also please note the Ivanti API will only let you run this at about 25 incidents, so you will need to rerun the script if there are a lot of incidents.
-
-<#Workflow TestingMultiThread{
-    ForEach -parallel($object in $searchQuery.value) {
-        $recIdofIncident = $object.recID
-        Write-Output "Deleting Inc#" $object.IncidentNumber
-        Invoke-RestMethod -Method 'DELETE' -Uri "https://tenant.saasit.com/api/odata/businessobject/incidents('$recIdofIncident')" -Headers $headers
-    }
-} TestingMultiThread#>
-
-<#ForEach ($object in $SearchQuery.value){
-$recIdofIncident = $object.recId
-$recIdofIncident
-}
+$fields = "{
+    'SubjectLine': '$SubjectLine',
+    'ParentLink_Category': 'TenantEmailConfiguration',
+    'ParentLink_RecID': '07E042A328B3449580AE415E3677E7A8',
+    'ParentLink': 'null',
+    'LineType': 'IgnoreSubjectLine',
+    'ReadOnly': 'false'
+}"
 
 
-$recIdofIncident | ForEach-Object -Parallel {
-    $object.IncidentNumber
-}#>
+$ignoreLine = Invoke-RestMethod -Method 'POST' -Uri "https://tenant.saasit.com/api/odata/businessobject/TenantEmailSubjectLines" -Body $fields -Headers $headers
+
+#This is an example of a loop
+
+$Output = Write-Host "'$SubjectLine' added to ignore list."
+
+
+$searchQuery = Invoke-RestMethod -Method 'GET' -Uri "https://tenant.saasit.com/api/odata/businessobject/incidents?`$filter=Subject eq '$SubjectLine'" -Headers $headers 
+#&?filter=Status eq 'Logged' <- for any additional filters
 
 ForEach ($object in $searchQuery.value) {
     $recIdofIncident = $object.recID
     Write-Output "Deleting Inc#" $object.IncidentNumber
     Invoke-RestMethod -Method 'DELETE' -Uri "https://tenant.saasit.com/api/odata/businessobject/incidents('$recIdofIncident')" -Headers $headers
 }
+
+
+
