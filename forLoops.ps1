@@ -1,7 +1,7 @@
 $Body = @{
-    tenant = "tenant.saasit.com"
+    tenant = "becn.saasit.com"
     username = "UN" #enter username here
-    password = "PW" #enter apssword here
+    password = "PW" #enter password here
     role = "IT"
 }
 
