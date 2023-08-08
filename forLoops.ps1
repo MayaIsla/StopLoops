@@ -1,12 +1,11 @@
-
 $Body = @{
     tenant = "tenant.saasit.com"
-    username = "UN"
-    password = "PW"
-    role = "Admin"
+    username = "UN" #enter username here
+    password = "PW" #enter apssword here
+    role = "IT"
 }
 
-$authCode = Invoke-RestMethod -Method 'POST' -Uri "https://tenant.saasit.com/api/rest/authentication/login" -Body $body
+$authCode = Invoke-RestMethod -Method 'POST' -Uri "https://becn.saasit.com/api/rest/authentication/login" -Body $body
 
 
 $headers = @{
@@ -26,21 +25,20 @@ $fields = "{
 }"
 
 
-$ignoreLine = Invoke-RestMethod -Method 'POST' -Uri "https://tenant.saasit.com/api/odata/businessobject/TenantEmailSubjectLines" -Body $fields -Headers $headers
+$ignoreLine = Invoke-RestMethod -Method 'POST' -Uri "https://becn.saasit.com/api/odata/businessobject/TenantEmailSubjectLines" -Body $fields -Headers $headers
 
-#This is an example of a loop
 
 $Output = Write-Host "'$SubjectLine' added to ignore list."
 
 
-$searchQuery = Invoke-RestMethod -Method 'GET' -Uri "https://tenant.saasit.com/api/odata/businessobject/incidents?`$filter=Subject eq '$SubjectLine'" -Headers $headers 
+$searchQuery = Invoke-RestMethod -Method 'GET' -Uri "https://becn.saasit.com/api/odata/businessobject/incidents?`$filter=Subject eq '$SubjectLine'" -Headers $headers 
+
 #&?filter=Status eq 'Logged' <- for any additional filters
+#Be sure this subject line is distinctive
+#Otherwise tickets that are not looping will be deleted.
 
 ForEach ($object in $searchQuery.value) {
     $recIdofIncident = $object.recID
     Write-Output "Deleting Inc#" $object.IncidentNumber
-    Invoke-RestMethod -Method 'DELETE' -Uri "https://tenant.saasit.com/api/odata/businessobject/incidents('$recIdofIncident')" -Headers $headers
+    Invoke-RestMethod -Method 'DELETE' -Uri "https://becn.saasit.com/api/odata/businessobject/incidents('$recIdofIncident')" -Headers $headers
 }
-
-
-
